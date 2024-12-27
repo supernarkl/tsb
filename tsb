@@ -1,0 +1,181 @@
+-- Load Orion Library
+local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/shlexware/Orion/main/source')))()
+
+-- Create a UI Window
+local Window = OrionLib:MakeWindow({
+    Name = "The Strongest Battlegrounds - Script Hub by Sendox",
+    HidePremium = false,
+    SaveConfig = true,
+    ConfigFolder = "OrionStrongest"
+})
+
+-- Create Main Tab (without Teleport to Safe)
+local MainTab = Window:MakeTab({
+    Name = "Main",
+    Icon = "rbxassetid://4483345998",
+    PremiumOnly = false
+})
+
+-- Auto-Farm Player Toggle
+MainTab:AddToggle({
+    Name = "Auto-Farm Players",
+    Default = false,
+    Callback = function(value)
+        if value then
+            _G.AutoFarmPlayers = true
+            while _G.AutoFarmPlayers do
+                local player = game.Players.LocalPlayer
+                local targetPlayer = nil
+                
+                -- Find the closest player (you can customize this search to find specific players)
+                for _, target in pairs(game.Players:GetPlayers()) do
+                    if target ~= player and target.Character and target.Character:FindFirstChild("Humanoid") then
+                        local distance = (player.Character.HumanoidRootPart.Position - target.Character.HumanoidRootPart.Position).Magnitude
+                        if not targetPlayer or distance < (targetPlayer and (player.Character.HumanoidRootPart.Position - targetPlayer.Character.HumanoidRootPart.Position).Magnitude) then
+                            targetPlayer = target
+                        end
+                    end
+                end
+                
+                if targetPlayer then
+                    -- Teleport to the target player every 0.01 seconds
+                    while _G.AutoFarmPlayers and targetPlayer.Character and targetPlayer.Character:FindFirstChild("Humanoid") and targetPlayer.Character.Humanoid.Health > 0 do
+                        local targetHumanoidRootPart = targetPlayer.Character:WaitForChild("HumanoidRootPart")
+                        game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = targetHumanoidRootPart.CFrame
+                        wait(0.01) -- Teleport every 0.01 seconds
+                    end
+
+                    -- If target dies, wait and find a new player
+                    if not targetPlayer.Character or not targetPlayer.Character:FindFirstChild("Humanoid") or targetPlayer.Character.Humanoid.Health <= 0 then
+                        print(targetPlayer.Name .. " has died. Finding a new target...")
+                        wait(2) -- Wait before switching target
+                    end
+                end
+                wait(1)  -- Delay before looking for a new target
+            end
+        else
+            _G.AutoFarmPlayers = false
+        end
+    end
+})
+
+-- Create Player Tab
+local PlayerTab = Window:MakeTab({
+    Name = "Player",
+    Icon = "rbxassetid://4483345998",
+    PremiumOnly = false
+})
+
+-- Speed Toggle Button (Set Speed to 50 and keep it constant)
+local speedToggleEnabled = false  -- Track if speed toggle is on
+
+PlayerTab:AddButton({
+    Name = "Speed 50",
+    Callback = function()
+        local player = game.Players.LocalPlayer
+        local humanoid = player.Character:WaitForChild("Humanoid")
+
+        -- Toggle speed on or off
+        speedToggleEnabled = not speedToggleEnabled
+        
+        if speedToggleEnabled then
+            humanoid.WalkSpeed = 50  -- Set speed to 50
+            print("Speed set to 50 and locked")
+        else
+            humanoid.WalkSpeed = 16  -- Reset speed to default
+            print("Speed reset to default")
+        end
+    end
+})
+
+-- Keep Speed at 50 Forever (Even if anything else changes it)
+game:GetService("RunService").Heartbeat:Connect(function()
+    local player = game.Players.LocalPlayer
+    local humanoid = player.Character:FindFirstChild("Humanoid")
+    if humanoid then
+        if speedToggleEnabled then
+            humanoid.WalkSpeed = 50  -- Maintain speed at 50 while toggle is on
+        end
+    end
+end)
+
+-- No Clip Button
+PlayerTab:AddButton({
+    Name = "No Clip",
+    Callback = function()
+        local character = game.Players.LocalPlayer.Character
+        local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+
+        -- Toggle NoClip
+        local function toggleNoClip(value)
+            if value then
+                humanoidRootPart.CanCollide = false
+                for _, part in pairs(character:GetChildren()) do
+                    if part:IsA("BasePart") then
+                        part.CanCollide = false
+                    end
+                end
+                print("No Clip Activated")
+            else
+                humanoidRootPart.CanCollide = true
+                for _, part in pairs(character:GetChildren()) do
+                    if part:IsA("BasePart") then
+                        part.CanCollide = true
+                    end
+                end
+                print("No Clip Deactivated")
+            end
+        end
+
+        -- Check if NoClip is already on or off
+        if humanoidRootPart.CanCollide == true then
+            toggleNoClip(true)
+        else
+            toggleNoClip(false)
+        end
+    end
+})
+
+-- Create Scripts Tab
+local ScriptsTab = Window:MakeTab({
+    Name = "Scripts",
+    Icon = "rbxassetid://4483345998",
+    PremiumOnly = false
+})
+
+-- Infinite Yield Button
+ScriptsTab:AddButton({
+    Name = "Infinite Yield",
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source"))()  -- Executes Infinite Yield script
+    end
+})
+
+-- Nameless Admin Button (Updated script URL)
+ScriptsTab:AddButton({
+    Name = "Nameless Admin",
+    Callback = function()
+        loadstring(game:HttpGet("https://rawscripts.net/raw/Steal-Time-From-Others-UPD-NA-nameless-admin-admin-20992"))()  -- Executes new Nameless Admin script
+    end
+})
+
+-- Create Credits Tab
+local CreditsTab = Window:MakeTab({
+    Name = "Credits",
+    Icon = "rbxassetid://4483345998",
+    PremiumOnly = false
+})
+
+CreditsTab:AddLabel("Script by Sendox")
+
+-- Discord Server Button in Credits Tab
+CreditsTab:AddButton({
+    Name = "Join Discord Server",
+    Callback = function()
+        -- Copy Discord invite to clipboard
+        setclipboard("https://discord.gg/sendox")
+    end
+})
+
+-- Initialize UI
+OrionLib:Init()
